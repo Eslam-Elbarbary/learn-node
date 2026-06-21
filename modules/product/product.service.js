@@ -1,76 +1,150 @@
-const products = [
-  {
-    id: 1,
-    name: "Product 1",
-    price: 100,
-  },
-  {
-    id: 2,
-    name: "Product 2",
-    price: 200,
-  },
-];
+import prisma from "../../lib/prisma.js";
 
-const getAllProductsServices = () => {
-  return products;
+const createSlug = (value) => {
+  return value
+    .toLowerCase()
+    .trim()
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 };
 
-const createProductService = (productData) => {
-  const newId =
-    products.length > 0
-      ? Math.max(...products.map((product) => product.id)) + 1
-      : 1;
+const formatProduct = (product) => {
+  if (!product) {
+    return null;
+  }
 
-  const newProduct = {
-    id: newId,
-    name: productData.name,
-    description: productData.description ?? null,
-    price: productData.price,
-    category: productData.category,
+  return {
+    ...product,
+    price: product.price.toString(),
   };
-
-  products.push(newProduct);
-
-  return newProduct;
 };
 
-const getSingleProductService = (productId) => {
-  return products.find((product) => product.id === Number(productId));
+const getAllProductsServices = async () => {
+  const products = await prisma.product.findMany({
+    where: {
+      isActive: true,
+    },
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return products.map(formatProduct);
 };
 
-const updateProductService = (productId, updatedData) => {
-  const product = products.find(
-    (product) => product.id === Number(productId)
-  );
+const getFeaturedProductsService = async () => {
+  const products = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      isFeatured: true,
+    },
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return products.map(formatProduct);
+};
+
+const getSingleProductService = async (productId) => {
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+    include: {
+      category: true,
+    },
+  });
+
+  return formatProduct(product);
+};
+
+const createProductService = async (productData) => {
+  const slug = createSlug(productData.name);
+
+  const newProduct = await prisma.product.create({
+    data: {
+      name: productData.name,
+      slug,
+      description: productData.description ?? null,
+      price: productData.price,
+      stock: productData.stock ?? 0,
+      isFeatured: productData.isFeatured ?? false,
+      isActive: productData.isActive ?? true,
+      categoryId: productData.categoryId,
+    },
+    include: {
+      category: true,
+    },
+  });
+
+  return formatProduct(newProduct);
+};
+
+const updateProductService = async (productId, updatedData) => {
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+  });
 
   if (!product) {
     return null;
   }
 
-  product.name = updatedData.name ?? product.name;
-  product.description = updatedData.description ?? product.description;
-  product.price = updatedData.price ?? product.price;
-  product.category = updatedData.category ?? product.category;
+  const dataToUpdate = {
+    ...updatedData,
+  };
 
-  return product;
+  if (updatedData.name) {
+    dataToUpdate.slug = createSlug(updatedData.name);
+  }
+
+  const updatedProduct = await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: dataToUpdate,
+    include: {
+      category: true,
+    },
+  });
+
+  return formatProduct(updatedProduct);
 };
 
-const deleteProductService = (productId) => {
-  const productIndex = products.findIndex(
-    (product) => product.id === Number(productId)
-  );
+const deleteProductService = async (productId) => {
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+  });
 
-  if (productIndex === -1) {
+  if (!product) {
     return null;
   }
 
-  const deletedProduct = products.splice(productIndex, 1)[0];
+  const deletedProduct = await prisma.product.update({
+    where: {
+      id: productId,
+    },
+    data: {
+      isActive: false,
+    },
+    include: {
+      category: true,
+    },
+  });
 
-  return deletedProduct;
-};
-
-const getFeaturedProductsService = () => {
-  return products.filter((product) => product.price > 150);
+  return formatProduct(deletedProduct);
 };
 
 export {

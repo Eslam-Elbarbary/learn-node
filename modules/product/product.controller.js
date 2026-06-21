@@ -13,7 +13,7 @@ import AppError from "../../utils/appError.js";
 
 // get all products
 const getAllProducts = asyncHandler(async (req, res) => {
-  const products = getAllProductsServices();
+  const products = await getAllProductsServices();
 
   return successResponse(res, 200, "all products fetched successfully", {
     products,
@@ -22,7 +22,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
 // get featured products
 const getFeaturedProducts = asyncHandler(async (req, res) => {
-  const products = getFeaturedProductsService();
+  const products = await getFeaturedProductsService();
 
   return successResponse(res, 200, "featured products fetched successfully", {
     products,
@@ -33,7 +33,7 @@ const getFeaturedProducts = asyncHandler(async (req, res) => {
 const getSingleProduct = asyncHandler(async (req, res) => {
   const productId = req.params.id;
 
-  const product = getSingleProductService(productId);
+  const product = await getSingleProductService(productId);
 
   if (!product) {
     throw new AppError("product not found", 404);
@@ -49,7 +49,7 @@ const createProduct = asyncHandler(async (req, res) => {
   const productData = req.body;
   const user = req.user;
 
-  const newProduct = createProductService(productData);
+  const newProduct = await createProductService(productData);
 
   return successResponse(res, 201, "product created successfully", {
     product: newProduct,
@@ -63,7 +63,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   const updatedData = req.body;
   const user = req.user;
 
-  const updatedProduct = updateProductService(productId, updatedData);
+  const updatedProduct = await updateProductService(productId, updatedData);
 
   if (!updatedProduct) {
     throw new AppError("product not found", 404);
@@ -81,7 +81,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const productId = req.params.id;
   const user = req.user;
 
-  const deletedProduct = deleteProductService(productId);
+  const deletedProduct = await deleteProductService(productId);
 
   if (!deletedProduct) {
     throw new AppError("product not found", 404);
