@@ -1,6 +1,6 @@
-const loggerMiddleware = (req, res , next)=>{
-    console.log(`${req.method}${req.url}`)
-    next();
-}
+const loggerMiddleware = (req, res, next) => {
+  console.log(`${req.method} ${req.originalUrl}`);
+  next();
+};
 
-module.exports = loggerMiddleware;
+export default loggerMiddleware;

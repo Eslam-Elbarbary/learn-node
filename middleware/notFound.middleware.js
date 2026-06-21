@@ -1,5 +1,7 @@
-const notFoundMiddleware=(req,res,next)=>{
-    res.status(404).json({message:"Not Found"});
-}
+import AppError from "../utils/appError.js";
 
-module.exports = notFoundMiddleware;
+const notFoundMiddleware = (req, res, next) => {
+  return next(new AppError(`Route not found: ${req.originalUrl}`, 404));
+};
+
+export default notFoundMiddleware;
