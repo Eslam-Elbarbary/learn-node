@@ -55,9 +55,10 @@ const getFeaturedProductsService = async () => {
 };
 
 const getSingleProductService = async (productId) => {
-  const product = await prisma.product.findUnique({
+  const product = await prisma.product.findFirst({
     where: {
       id: productId,
+      isActive:true
     },
     include: {
       category: true,
@@ -140,7 +141,8 @@ const deleteProductService = async (productId) => {
       isActive: false,
     },
     include: {
-      category: true,
+      categ
+      ory: true,
     },
   });
 
