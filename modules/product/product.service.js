@@ -91,9 +91,10 @@ const createProductService = async (productData) => {
 };
 
 const updateProductService = async (productId, updatedData) => {
-  const product = await prisma.product.findUnique({
+  const product = await prisma.product.findFirst({
     where: {
       id: productId,
+      isActive : true
     },
   });
 
@@ -123,9 +124,10 @@ const updateProductService = async (productId, updatedData) => {
 };
 
 const deleteProductService = async (productId) => {
-  const product = await prisma.product.findUnique({
+  const product = await prisma.product.findFirst({
     where: {
       id: productId,
+      isActive : true
     },
   });
 
@@ -141,8 +143,7 @@ const deleteProductService = async (productId) => {
       isActive: false,
     },
     include: {
-      categ
-      ory: true,
+      category: true,
     },
   });
 
